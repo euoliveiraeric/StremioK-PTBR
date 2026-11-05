@@ -1,0 +1,7 @@
+node_modules/
+test-results/
+dist/
+.buildResult/
+*.wgt
+*.tgz
+locales/inventory.json

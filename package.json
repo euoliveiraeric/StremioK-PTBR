@@ -1,0 +1,77 @@
+{
+  "name": "stremiok-ptbr-local",
+  "version": "2.2.8-ptbr.1",
+  "description": "Versão independente PT-BR/EN do StremioK para Tizen 3.0+",
+  "packageType": "app",
+  "appName": "StremioK PT-BR",
+  "appPath": "index.html",
+  "serviceFile": "service/index.js",
+  "files": [
+    "index.html",
+    "css",
+    "js",
+    "service",
+    "icon.png",
+    "config.xml",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "locales/pt-BR.json",
+    "PT-BR.md"
+  ],
+  "keys": [
+    "MediaPlay",
+    "MediaPause",
+    "MediaPlayPause",
+    "MediaStop",
+    "MediaRewind",
+    "MediaFastForward",
+    "MediaTrackPrevious",
+    "MediaTrackNext",
+    "ChannelUp",
+    "ChannelDown",
+    "Guide",
+    "ColorF0Red",
+    "ColorF1Green",
+    "ColorF2Yellow",
+    "ColorF3Blue",
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9"
+  ],
+  "evaluateScriptOnDocumentStart": false,
+  "license": "MIT",
+  "homepage": "https://github.com/srwayne15-bot/StremioK-PTBR#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/srwayne15-bot/StremioK-PTBR.git"
+  },
+  "bugs": {
+    "url": "https://github.com/srwayne15-bot/StremioK-PTBR/issues"
+  },
+  "private": true,
+  "scripts": {
+    "test": "node tests/runtime.cjs",
+    "test:browser": "node tests/browser.cjs",
+    "build:wgt": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-wgt.ps1",
+    "i18n:sync": "node scripts/sync-i18n.cjs",
+    "i18n:audit": "node scripts/audit-strings.cjs"
+  },
+  "devDependencies": {
+    "acorn": "8.19.0",
+    "jsdom": "26.1.0",
+    "fake-indexeddb": "6.2.7",
+    "playwright-core": "1.56.1"
+  },
+  "stremiokUpstream": {
+    "url": "https://github.com/Kepler75/StremioK",
+    "commit": "d37839db2b0f03cf7e70060550f6605dcf72dec3"
+  }
+}
