@@ -1,3 +1,16 @@
+## 2.2.8-ptbr.3
+
+- Áudio original + PT-BR por padrão em séries e animes; sem impor japonês a todas as obras.
+- Idioma original explícito do catálogo, consulta opcional ao TMDB por ID exato e ajuste manual por título dentro da temporada/episódio.
+- Preferência de áudio original preservada ao desativar a ocultação; escolhas manuais e exceções incluídas na exportação de configurações.
+
+## 2.2.8-ptbr.2 (preparada localmente)
+
+- Filtro JP + PT-BR também na tela de fontes dentro de temporadas/episódios.
+- Oculta fontes inelegíveis, de outros idiomas e sem informação explícita; retomar, próximo episódio e player respeitam a mesma regra.
+- Não escolhe português genérico/PT-PT automaticamente no modo estrito.
+- Preferências e dados existentes preservados; aplicativo e serviços continuam ES5.
+
 # Changelog
 
 What changed in each version of StremioK, newest first. How everything works is in the

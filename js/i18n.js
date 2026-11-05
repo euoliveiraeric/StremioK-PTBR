@@ -1864,7 +1864,6 @@ var I18n = (function () {
     "🕘 From earlier: you played it ": "🕘 De antes: você jogou ",
     "🚫 Has your word “": "🚫 Tem a sua palavra “",
     "🧲 A torrent, through your streaming server (Settings › Content › Streaming server)": "🧲 Um torrent, através do seu servidor de streaming (Configurações › Conteúdo › Servidor de streaming)",
-    "Japanese audio was not reported by this source. Check Audio track or try Select source.": "Esta fonte não informou áudio japonês. Confira Faixa de áudio ou tente Selecionar fonte.",
     "Buffering…": "Carregando vídeo…",
     "Reloading…": "Recarregando…",
     "Searching…": "Buscando…",
@@ -1995,7 +1994,22 @@ var I18n = (function () {
     "”: StremioK’s service didn’t answer (": "”: O serviço do StremioK não respondeu (",
     "StremioK's YouTube service didn't answer (": "O serviço YouTube do StremioK não respondeu (",
     "TizenBrew didn't start it": "TizenBrew não iniciou",
-    "started, then checked for a while": "iniciado e verificado por um tempo"
+    "started, then checked for a while": "iniciado e verificado por um tempo",
+    "Filter off: all sources are visible again.": "Filtro desativado: todas as fontes voltam a aparecer.",
+    "No eligible source reports both Japanese audio and PT-BR subtitles. Disable the filter to see unconfirmed sources.": "Nenhuma fonte elegível informou áudio japonês e legenda PT-BR juntos. Desative o filtro para ver fontes sem confirmação.",
+    "PT-BR subtitles reported. Open Subtitles > Language to choose a release.": "Legendas PT-BR informadas. Abra Legendas > Idioma para escolher a versão.",
+    "No PT-BR subtitles reported. Generic Portuguese and other variants are not selected while this filter is on.": "Nenhuma legenda PT-BR informada. Português genérico e outras variantes não são selecionados com este filtro ativo.",
+    "Filter original + PT-BR": "Filtro original + PT-BR",
+    "Original audio was not reported by this source. Check the title original language and audio tracks.": "O áudio original não foi informado nesta fonte. Confira o idioma original do título e as faixas de áudio.",
+    "Only eligible sources reporting this title original audio and PT-BR subtitles. Unconfirmed sources are hidden.": "Somente fontes elegíveis que informam o áudio original deste título e legenda PT-BR. Fontes sem confirmação ficam ocultas.",
+    "Original audio + PT-BR subtitles reported by the addon. Unconfirmed and ineligible sources are hidden.": "Áudio original + legenda PT-BR informados pelo complemento. Fontes sem confirmação ou inelegíveis foram ocultadas.",
+    "This source does not meet the active original audio + PT-BR filter.": "Esta fonte não atende ao filtro ativo de áudio original + PT-BR.",
+    "Original audio": "Áudio original",
+    "Not informed": "Não informado",
+    "Use title metadata": "Usar metadados do título",
+    "Original language of this title": "Idioma original deste título",
+    "No eligible source reports both original audio and PT-BR subtitles. Disable the filter to see unconfirmed sources.": "Nenhuma fonte elegível informou áudio original e legenda PT-BR juntos. Desative o filtro para ver fontes sem confirmação.",
+    "Original language is not informed. Choose Original audio to define this title language; no language is assumed.": "Idioma original não informado. Use Áudio original para definir o idioma deste título; nenhum idioma é presumido."
 };
     try { if (window.localStorage.getItem(KEY) === 'en') { current = 'en'; } } catch (e) {}
     function t(key) { return current === 'en' || !Object.prototype.hasOwnProperty.call(PT, key) ? key : PT[key]; }

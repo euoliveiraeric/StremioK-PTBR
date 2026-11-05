@@ -549,3 +549,7 @@ html, body {
 /* PT-BR actions in the episode selector */
 .refresh-detail, .anime-pref { flex-shrink: 0; white-space: nowrap; }
 .locale-brand { font-size: 16px; font-style: normal; color: #c4c9ff; }
+
+/* Keep the episode filter reachable beside long source labels on Tizen 3. */
+.streams-actions { white-space: normal; }
+.streams-actions .pill { margin-bottom: 8px; }

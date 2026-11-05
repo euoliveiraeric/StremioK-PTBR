@@ -118,6 +118,7 @@
         // (series still shows the episode browser; each episode loads its own sources).
         function afterMeta() {
             asEpisodeList();
+            resolveNativeLanguage();
             var files = embeddedFiles(_d.meta);
             var ep = playBest && target ? (_d.meta.videos || []).filter(function (v) { return v.id === target; })[0] : null;
             if (_d.type === 'movie') { openStreams(_d.id, _d.meta.name || _d.meta.title, false, playBest ? PLAY_KEY : null); }
@@ -218,6 +219,7 @@
     // where you land when you stop; if a saved debrid link has expired, the player's
     // retries end there too, one press from another source.
     function startResume(p) {
+        if (animeFilterOn()) { openStreams(p.id, p.name, false, p.fromStart ? { fromStart: true, auto: true } : AUTO); return; }
         // (a file on a USB drive: its source again, with its subtitle files, from whichever drive has it now)
         var local = (typeof LocalMedia !== 'undefined' && /^file:\/\//i.test(p.url || '')) ? LocalMedia.streamForUrl(p.url) : null;
         var how = p.fromStart ? { fromStart: true } : null;   // (Play from start: the same source, from 0:00)
@@ -1245,6 +1247,7 @@
         _d = Object.assign({}, previous);
         _d._restoreKey = key;
         _d._refreshing = true;
+        _d._nativeLanguageTried = false;
         Stremio.refreshTransient(); U.retryArtwork(); _epTrailers.clear();
         var still = pageNow();
         U.spinner(true, I18n.t('Refreshing episodes, artwork and sources…'));
@@ -1261,10 +1264,66 @@
         });
         function finish() {
             _d._refreshing = false; U.spinner(false);
+            resolveNativeLanguage();
             if (streamId) { openStreams(streamId, streamLabel, true); }
             else { drawDetail(); }
         }
         return true;
+    }
+
+    function nativeContext() { return { type: _d && !_d.collection && !/^(ytk|yt_id):/.test(_d.id || '') ? _d.type : '', id: _d && _d.id, meta: _d && _d.meta }; }
+    function animeFilterOn() { return !!(_d && AnimePrefs.enabled(nativeContext())); }
+    function animeFilterPill() {
+        if (!_d || _d.type !== 'series' || _d.collection || /^(ytk|yt_id):/.test(_d.id || '')) { return null; }
+        var ctx = nativeContext();
+        var p = U.el('div', 'pill focusable anime-pref', I18n.t('Filter original + PT-BR') + ': ' + I18n.t(AnimePrefs.enabled(ctx) ? 'On' : 'Off'));
+        p.setAttribute('data-action', 'anime-preference');
+        p.__onselect = function () {
+            var on = !AnimePrefs.enabled(ctx);
+            if (!AnimePrefs.set(ctx, on)) { U.toast(I18n.t('Could not save the preference.')); return; }
+            _d.rankRows = null;
+            if (_d.streams) { _d.streams = sortStreams(_d.streams); }
+            _d._restoreKey = 'text:' + p.textContent.replace(I18n.t(on ? 'Off' : 'On'), I18n.t(on ? 'On' : 'Off'));
+            drawDetail();
+            U.toast(I18n.t(on ? 'Only eligible sources reporting this title original audio and PT-BR subtitles. Unconfirmed sources are hidden.' : 'Filter off: all sources are visible again.'), 6500);
+        };
+        return p;
+    }
+
+    function nativeLanguagePill() {
+        if (!_d || _d.type !== 'series' || _d.collection || /^(ytk|yt_id):/.test(_d.id || '')) { return null; }
+        var ctx = nativeContext(), code = AnimePrefs.originalLanguage(ctx);
+        var p = U.el('div', 'pill focusable native-language', I18n.t('Original audio') + ': ' + (code ? Player.langName(code) : I18n.t('Not informed')) + '  ▾');
+        p.setAttribute('data-action', 'original-language');
+        p.__onselect = function () {
+            var choices = [['', I18n.t('Use title metadata')]].concat(Player.languageChoices());
+            pickList(I18n.t('Original language of this title'), choices, code, function (value) {
+                if (!AnimePrefs.setOriginalLanguage(ctx, value)) { U.toast(I18n.t('Could not save the preference.')); return; }
+                _d.rankRows = null;
+                if (_d.streams) { _d.streams = sortStreams(_d.streams); }
+                drawDetail();
+            });
+        };
+        return p;
+    }
+    function resolveNativeLanguage() {
+        if (!AnimePrefs.prefersNative(nativeContext()) || AnimePrefs.originalLanguage(nativeContext()) || _d._nativeLanguageTried || !Stremio.hasTmdb || !Stremio.hasTmdb()) { return; }
+        var page = _d, still = pageNow();
+        page._nativeLanguageTried = true;
+        Stremio.tmdbOriginalLanguage(page.type, page.id, page.meta, pageCancel()).then(function (language) {
+            if (!still() || !page.meta) { return; }
+            if (AnimePrefs.languageKey(language)) {
+                page.meta.original_language = language; page.rankRows = null;
+                if (page.streams) { page.streams = sortStreams(page.streams); }
+                function redrawWhenReady(left) {
+                    if (!still() || Player.isActive()) { return; }
+                    if (V.isModalOpen()) { if (left > 0) { setTimeout(function () { redrawWhenReady(left - 1); }, 500); } return; }
+                    page._restoreKey = focusKey(Focus.current());
+                    drawDetail();
+                }
+                redrawWhenReady(240);
+            }
+        }, function () {});
     }
 
     function refreshPill() {
@@ -1284,18 +1343,9 @@
         var panel = U.el('div', 'list-panel series-panel');
         var bar = U.el('div', 'season-bar');
         bar.appendChild(refreshPill());
-        if (!_d.collection && !_d.addonType) {
-            var animeCtx = { type: 'series', id: _d.id };
-            var anime = U.el('div', 'pill focusable anime-pref', I18n.t('Anime: JP + PT-BR') + ' ' + I18n.t(AnimePrefs.enabled(animeCtx) ? 'On' : 'Off'));
-            anime.setAttribute('data-action', 'anime-preference');
-            anime.__onselect = function () {
-                var on = !AnimePrefs.enabled(animeCtx);
-                if (!AnimePrefs.set(animeCtx, on)) { U.toast(I18n.t('Could not save the preference.')); return; }
-                drawDetail();
-                U.toast(I18n.t(on ? 'This title: prefer Japanese audio and Brazilian Portuguese subtitles when available. Source language labels are hints, not verified tracks.' : 'This title: use your usual audio and subtitle settings.'), 7000);
-            };
-            bar.appendChild(anime);
-        }
+        var anime = animeFilterPill();
+        if (anime) { bar.appendChild(anime); }
+        var original = nativeLanguagePill(); if (original) { bar.appendChild(original); }
         // UP from the episodes lands on the season being shown, not the nearest button.
         bar.__onEnter = function () { return bar.querySelector('.season-sel'); };
         var watchedBySeason = seasonWatchedMap(meta);
@@ -1514,8 +1564,8 @@
             var ga = GROUPS.indexOf(a.group), gb = GROUPS.indexOf(b.group);
             if (ga !== gb) { return ga - gb; }
             if (anime && a.group === 'ranked') {
-                var jp = AnimePrefs.sourceScore(b.st) - AnimePrefs.sourceScore(a.st);
-                if (jp) { return jp; }
+                var nativeScore = (AnimePrefs.matchesSource(b.st, nativeContext()) ? 1 : 0) - (AnimePrefs.matchesSource(a.st, nativeContext()) ? 1 : 0);
+                if (nativeScore) { return nativeScore; }
             }
             if (a.group === 'played' && a.pr !== b.pr) { return a.pr - b.pr; }
             if (a.group === 'where' && !a.app !== !b.app) { return a.app ? -1 : 1; }
@@ -1551,7 +1601,7 @@
         for (var i = 0; i < rows.length; i++) { if (pickable(rows[i])) { return rows[i]; } }
         return null;
     }
-    function pickable(r) { return r.group !== 'unsuitable' && r.group !== 'worded' && r.group !== 'sized' && r.group !== 'bad' && r.group !== 'where'; }
+    function pickable(r) { return r.group !== 'unsuitable' && r.group !== 'worded' && r.group !== 'sized' && r.group !== 'bad' && r.group !== 'where' && (!animeFilterOn() || AnimePrefs.matchesSource(r.st, nativeContext())); }
     // A source that didn't start (the player, Settings › Source ranking › The next source): the
     // best ranked one this playback hasn't tried (tried: their sourceIds; never the same file
     // again), as the player takes a source, or null. total: how many it could try in all.
@@ -1842,13 +1892,13 @@
     }
     function filterRows(rows) {
         var f = filterOf();
-        return (f.addon || f.res) ? rows.filter(function (r) { return matchFilter(r, f); }) : rows;
+        return rows.filter(function (r) { return (!animeFilterOn() || pickable(r)) && matchFilter(r, f); });
     }
     // [[key, label, how many]] for one button, within the other's choice
     function filterOptions(kind, rows) {
         var f = filterOf(), out = [], at = {};
         rows.forEach(function (r) {
-            if (!matchFilter(r, f, kind)) { return; }
+            if ((animeFilterOn() && !pickable(r)) || !matchFilter(r, f, kind)) { return; }
             var keys = kind === 'addon' ? rowAddons(r) : (r.group === 'where' ? [] : [r.tier]);
             keys.forEach(function (k) {
                 if (at[k] === undefined) { at[k] = out.length; out.push([k, kind === 'addon' ? k : GROUP_TITLES[k], 0, Infinity]); }
@@ -1867,7 +1917,7 @@
         var p = U.el('div', 'pill focusable filter-pill', label + '  ▾');
         if (_d._focusPill === 'filter-' + kind) { _d._epFocus = p; _d._focusPill = null; }
         p.__onselect = function () {
-            var total = rows.filter(function (r) { return matchFilter(r, filterOf(), kind) && (kind === 'addon' || r.group !== 'where'); }).length;
+            var total = rows.filter(function (r) { return (!animeFilterOn() || pickable(r)) && matchFilter(r, filterOf(), kind) && (kind === 'addon' || r.group !== 'where'); }).length;
             pickList(kind === 'addon' ? I18n.t('Sources from') : I18n.t('Resolution'), [['', I18n.t('All  ·  ') + total]].concat(opts.map(function (o) { return [o[0], o[1] + '  ·  ' + o[2]]; })), f[kind], function (k) {
                 var now = filterOf();
                 _d.filter = { addon: kind === 'addon' ? k : now.addon, res: kind === 'res' ? k : now.res };
@@ -1888,6 +1938,9 @@
     }
     function streamActionsBar() {
         var row = U.el('div', 'btn-row streams-actions');
+        var anime = animeFilterPill();
+        if (anime) { row.appendChild(anime); }
+        var original = nativeLanguagePill(); if (original) { row.appendChild(original); }
         var allRows = (_d.streams && _d.streams.length) ? rankRowsFor(_d.streams) : [];
         // ▶ Play best: the top of the ranking (focused when the page opens), within the filter
         var best = allRows.length ? bestRow(filterRows(allRows)) : null;
@@ -1960,6 +2013,14 @@
         if (heading) { listScroll.appendChild(U.el('div', 'stream-for', heading)); }
         serverNow(_d.streams);   // (a page kept from before: its torrents follow the streaming server set now)
         var list = _d.streams, keepAt = -1, rows = rankRowsFor(list), lastGroup = null;
+        if (animeFilterOn()) {
+            var strictRows = rows.filter(pickable), hidden = rows.length - strictRows.length;
+            rows = strictRows; list = rows.map(function (r) { return r.st; });
+            listScroll.appendChild(U.el('div', 'streams-hidden', I18n.t('Original audio + PT-BR subtitles reported by the addon. Unconfirmed and ineligible sources are hidden.') + ' (' + hidden + ')'));
+            if (!list.length) {
+                listScroll.appendChild(U.el('div', 'detail-meta no-sources', I18n.t(AnimePrefs.originalLanguage(nativeContext()) ? 'No eligible source reports both original audio and PT-BR subtitles. Disable the filter to see unconfirmed sources.' : 'Original language is not informed. Choose Original audio to define this title language; no language is assumed.')));
+            }
+        }
         // Direct links only (Settings › Source ranking): the sources the TV can't play left out
         // (torrents, links it can't open); where-to-watch apps stay (they open)
         if (Stremio.getPrefs().hideUnplayable && !_d.live) {
@@ -2099,7 +2160,9 @@
     // (IPTV), so switching to it sends its own (or none).
     function playableSources(list) {
         serverNow(list || _d.streams);
-        return (list || _d.streams || []).filter(Stremio.isPlayable).map(function (st) {
+        var candidates = list || _d.streams || [];
+        if (animeFilterOn()) { candidates = filterRows(rankStreams(candidates, _d.id)).map(function (r) { return r.st; }); }
+        return candidates.filter(Stremio.isPlayable).map(function (st) {
             var sz = Stremio.streamSize(st);
             var desc = Stremio.streamDescription(st).replace(/\n/g, '   ');
             var dparts = [];
@@ -2115,6 +2178,9 @@
 
     // how (optional): { fromStart } — Play from start (Continue Watching): from 0:00.
     function startPlayback(stream, videoId, label, how) {
+        if (animeFilterOn() && !bestRow(rankStreams([stream], _d.id))) {
+            U.toast(I18n.t('This source does not meet the active original audio + PT-BR filter.')); return null;
+        }
         if (stream && stream.infoHash) {   // (a torrent: its link from the streaming server set now)
             Stremio.torrentSource(stream);
             if (!stream.url) { U.toast(I18n.t('Torrents play through a streaming server: Settings › Content › Streaming server'), 6000); return null; }
@@ -2195,6 +2261,7 @@
             return;
         }
         var ctx = { url: stream.url, type: _d.type, addonType: _d.addonType, id: videoId, name: label, parent: _d.id,
+            originalLanguage: AnimePrefs.originalLanguage(nativeContext()),
             poster: _d.meta.poster, background: _d.meta.background, streams: playableSources(), _headers: U.sanitizeHeaders(stream._headers) || undefined, zap: zap, zapTo: zap ? zapToChannel : null,
             localSubs: stream._localSubs, localFile: stream._localFile,
             subExtra: fileHintsOf(stream), sourceSubs: sourceSubsOf(stream), formatInfo: Stremio.streamInfo(stream), fromStart: !!(how && how.fromStart) || undefined,
@@ -2379,6 +2446,7 @@
     // same addon, resolution and release group; ties keep the list's order. With nothing
     // remembered, the first playable source (as before).
     function pickLikeLast(seriesId, list) {
+        if (animeFilterOn()) { var allowed = bestRow(filterRows(rankStreams(list || [], seriesId))); return allowed ? allowed.st : null; }
         var marked = unsuitableList(seriesId);
         var playable = (list || []).filter(function (st) { return Stremio.isPlayable(st) && !isSubscriptionStream(st) && !Stremio.badFormats(st).length && !Stremio.blockedRes(st) && marked.indexOf(fileIdentity(st)) === -1 && !(Stremio.hideWordHit && Stremio.hideWordHit(st)) && !sizeHit(st); });
         if (!playable.length) { playable = (list || []).filter(function (st) { return Stremio.isPlayable(st) && !isSubscriptionStream(st); }); }

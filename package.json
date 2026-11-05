@@ -1,6 +1,6 @@
 {
   "name": "stremiok-ptbr-local",
-  "version": "2.2.8-ptbr.1",
+  "version": "2.2.8-ptbr.3",
   "description": "Versão independente PT-BR/EN do StremioK para Tizen 3.0+",
   "packageType": "app",
   "appName": "StremioK PT-BR",
@@ -58,11 +58,12 @@
   },
   "private": true,
   "scripts": {
-    "test": "node tests/runtime.cjs",
+    "test": "node tests/runtime.cjs && node tests/strict-filter.cjs",
     "test:browser": "node tests/browser.cjs",
     "build:wgt": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-wgt.ps1",
     "i18n:sync": "node scripts/sync-i18n.cjs",
-    "i18n:audit": "node scripts/audit-strings.cjs"
+    "i18n:audit": "node scripts/audit-strings.cjs",
+    "test:strict": "node tests/strict-filter.cjs"
   },
   "devDependencies": {
     "acorn": "8.19.0",

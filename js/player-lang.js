@@ -178,6 +178,7 @@
     }
 
     // ----- for the other parts (and js/player.js) -----
+    P.languageChoices = function () { return Object.keys(LANG_ALIASES).map(function (key) { return [key, langName(key)]; }).sort(function (a, b) { return a[1].localeCompare(b[1]); }); };
     P.trackInfo = trackInfo; P.infoLang = infoLang; P.trackLang = trackLang; P.langMatches = langMatches;
     P.langName = langName; P.langRank = langRank; P.langKey = langKey;
     // A track that doesn't say its language (by its key): none, "und", "unknown"…, or no letters.

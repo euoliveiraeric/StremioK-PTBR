@@ -6,6 +6,7 @@
 var Player = (function (P) {
     'use strict';
     return {
+        languageChoices: P.languageChoices,
         init: P.init, play: P.play, handleKey: P.handleKey, isActive: P.isActive,
         exit: P.exit, continueList: P.continueList, getResume: P.getResume, removeProgress: P.removeProgress,
         getSubCfg: P.getSubCfg, setSubCfg: P.setSubCfg, getAudioCfg: P.getAudioCfg, setAudioCfg: P.setAudioCfg,

@@ -139,18 +139,19 @@
     }
     // The track to play (its position in tracks), or -1: leave the one playing.
     function preferredPos(tracks) {
-        if (AnimePrefs.enabled(S.ctx) && tracks.length && !S.ctx._animeAudioNotice && !tracks.some(function (t) { return langMatches('jpn', infoLang(trackInfo(t))); })) {
+        var nativeLanguage = AnimePrefs.originalLanguage(S.ctx);
+        if (AnimePrefs.prefersNative(S.ctx) && tracks.length && !S.ctx._animeAudioNotice && !tracks.some(function (t) { return nativeLanguage && langMatches(nativeLanguage, infoLang(trackInfo(t))); })) {
             S.ctx._animeAudioNotice = true;
-            U.toast(I18n.t('Japanese audio was not reported by this source. Check Audio track or try Select source.'), 6000);
+            U.toast(I18n.t('Original audio was not reported by this source. Check the title original language and audio tracks.'), 6000);
         }
         if (tracks.length < 2) { return -1; }
         // (an episode: its own choice, else the one made last in the series — by its language)
         var pos = -1, mem = recallAudio(S.ctx && S.ctx.id) || (seriesOf(S.ctx) && recallAudio(seriesOf(S.ctx)));
-        if (mem && !AnimePrefs.enabled(S.ctx)) { pos = rememberedAudioPos(tracks, mem); }
+        if (mem && !AnimePrefs.prefersNative(S.ctx)) { pos = rememberedAudioPos(tracks, mem); }
         if (pos < 0) {
             // preferred language, then the second choice ("Default" = first track, no preference)
             var cfg = getAudioCfg();
-            if (AnimePrefs.enabled(S.ctx)) { cfg.lang = 'jpn'; cfg.lang2 = 'none'; }
+            if (AnimePrefs.prefersNative(S.ctx)) { cfg.lang = nativeLanguage || 'default'; cfg.lang2 = 'none'; }
             var prefs = cfg.lang === 'default' ? [] : [cfg.lang];
             if (prefs.length && cfg.lang2 !== 'none' && cfg.lang2 !== cfg.lang) { prefs.push(cfg.lang2); }
             // (the track playing already in that language: kept, not swapped for another

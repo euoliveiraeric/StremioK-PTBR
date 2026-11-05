@@ -97,9 +97,13 @@
         Promise.all([fromAddons, fromYouTube, localReady, usbSubs]).then(function (r) {
             var all = localSubs.concat(ctx.sourceSubs || [], r[0] || [], r[1], r[3] || []);   // (a source's own: made for its file, so first after a USB file's)
             if (!S.active || S.ctx !== ctx || generation !== _listGeneration) { return; }   // (another playback started meanwhile: not its tracks)
-            if (AnimePrefs.enabled(ctx)) { all = AnimePrefs.orderSubtitles(all); }
+            if (AnimePrefs.prefersNative(ctx)) { all = AnimePrefs.orderSubtitles(all.filter(function (t) { return AnimePrefs.isBrazilian(t.lang || ''); })); }
             if (manual) {
-                U.toast(I18n.t(all.some(function (t) { return langKey(t.lang) === 'por'; }) ? 'Portuguese subtitles found. Open Subtitles > Language to choose a release.' : 'No Portuguese subtitles returned by the addons. Also check the tracks built into the file.'), 6000);
+                if (AnimePrefs.prefersNative(ctx)) {
+                    U.toast(I18n.t(all.length ? 'PT-BR subtitles reported. Open Subtitles > Language to choose a release.' : 'No PT-BR subtitles reported. Generic Portuguese and other variants are not selected while this filter is on.'), 6000);
+                } else {
+                    U.toast(I18n.t(all.some(function (t) { return langKey(t.lang) === 'por'; }) ? 'Portuguese subtitles found. Open Subtitles > Language to choose a release.' : 'No Portuguese subtitles returned by the addons. Also check the tracks built into the file.'), 6000);
+                }
             }
             if (early || _subOn || _embSub != null) { _subTracks = all; updateHint(); startSecond(); return; }
             pickSubs(all, false);
@@ -111,12 +115,12 @@
         function pickSubs(tracks, partial) {
             if (!S.active || S.ctx !== ctx || generation !== _listGeneration) { return false; }
             if (partial && (_subOn || _embSub != null)) { return false; }
-            _subTracks = tracks || [];
+            _subTracks = AnimePrefs.prefersNative(ctx) ? (tracks || []).filter(function (t) { return AnimePrefs.isBrazilian(t.lang || ''); }) : (tracks || []);
             updateHint();
 
             // 1) A remembered choice for this exact title wins: an addon track (subtitle id,
             //    then url, then any track in that language), a built-in track, or "off".
-            var mem = AnimePrefs.enabled(ctx) ? null : recallSub(ctx.id);
+            var mem = AnimePrefs.prefersNative(ctx) ? null : recallSub(ctx.id);
             if (mem) {
                 if (mem.off) { return true; }
                 if (mem.embedded) {
@@ -140,7 +144,7 @@
             //    then the second choice, the same way (see applyEmbeddedWant: once the file's own
             //    tracks are known, so the default language built into it comes first).
             var cfg = getSubCfg();
-            if (AnimePrefs.enabled(ctx)) { cfg.lang = 'por'; cfg.lang2 = 'none'; }
+            if (AnimePrefs.prefersNative(ctx)) { cfg.lang = 'por'; cfg.lang2 = 'none'; }
             if (!cfg.lang || cfg.lang === 'off') { return !partial; }
             // "spa" also matches "es", "es-419", "Spanish", "Español"...
             var match = _subTracks.find(function (t) { return langMatches(cfg.lang, t.lang); });
@@ -449,6 +453,7 @@
         var w = _embWant; _embWant = null;
         if (!w || _subOn) { return; }   // an addon track was chosen meanwhile
         var tracks = getTextTracks(), pick = null, key = w.lang ? langKey(w.lang) : '';
+        if (AnimePrefs.prefersNative(S.ctx)) { tracks = tracks.filter(function (t) { return AnimePrefs.isBrazilian(textLang(t)); }); }
         if (w.index != null) {
             pick = tracks.find(function (t) { return t.index === w.index && (!key || langKey(textLang(t)) === key); }) || null;
         }

@@ -1,4 +1,4 @@
-# StremioK PT-BR — versão local 2.2.8-ptbr.1
+# StremioK PT-BR — versão local 2.2.8-ptbr.3
 
 Derivada do [StremioK de Kepler75](https://github.com/Kepler75/StremioK), commit `d37839db2b0f03cf7e70060550f6605dcf72dec3`, sob licença MIT. Esta cópia é distribuída separadamente em srwayne15-bot/StremioK-PTBR e não é uma distribuição oficial do autor original.
 
@@ -10,15 +10,15 @@ Alvo: Samsung UN55MU7500 (2017), Tizen 3.0 e JavaScript ES5. A base original já
 - **↻ Atualizar** na barra de temporadas/episódios: consulta os detalhes novamente, libera imagens que falharam para nova tentativa e invalida fontes e dados temporários. Se estiver na tela de fontes, consulta também as fontes novamente. As legendas dos complementos são consultadas ao iniciar a reprodução, com os dados do arquivo quando a fonte os informa.
 - Ao voltar do YouTube ou de outro aplicativo, uma transição de segundo plano para primeiro plano atualiza os detalhes/fontes da tela aberta. Uma reprodução ativa ou janela de confirmação adia essa atualização até poder fazê-la. Não reinicia a TV.
 - Respostas de consultas antigas não substituem uma tela atualizada. Uma nova busca de legendas também descarta resultados da busca anterior no mesmo vídeo.
-- **Anime: JP + PT-BR**, na seleção de episódios: opção por título. Prioriza áudio japonês entre as faixas informadas e legenda brasileira entre as legendas em português. Se não houver uma variante brasileira identificada, pode usar português genérico ou outra variante disponível. Desativar restaura as preferências habituais para aquele título.
-- No modo anime, indicações explícitas de japonês no nome/descrição/arquivo da fonte recebem prioridade entre as fontes elegíveis. Isso é uma indicação do fornecedor, não verificação do áudio antes de abrir o arquivo. Fontes de idioma desconhecido continuam disponíveis.
+- **Filtro original + PT-BR**, na seleção de episódios: Ativado por padrão para séries e animes, com opção por título. Prioriza áudio original entre as faixas informadas e legenda brasileira entre as legendas em português. Com o filtro ativado, português genérico e PT-PT não são escolhidos automaticamente. Fontes sem informação explícita sobre o idioma original e PT-BR ficam ocultas. Desativar o filtro permite ver todas as fontes, mantendo a preferência de reprodução por áudio original e PT-BR.
+- Com o filtro ativo, ficam visíveis apenas fontes elegíveis que informam áudio original e legendas PT-BR em campos próprios ou campos de idioma rotulados. Informações ausentes, nomes genéricos, multi/dual, português sem variante, links para outros aplicativos, torrents sem servidor e formatos conhecidos como incompatíveis ficam ocultos. Isso é informação do fornecedor, não verificação por reprodução. Desativar o filtro restaura a lista completa.
 - **Player › Legendas › Atualizar legendas** consulta os complementos novamente sem sair do vídeo. O ajuste de sincronização em **Legendas › Sincronização** continua disponível para releases com tempos diferentes.
 
 Os títulos, sinopses, nomes de episódios, nomes de fontes, conteúdo das legendas e mensagens enviadas por terceiros não são traduzidos pelo aplicativo. O catálogo aplica-se aos textos estáticos da interface. Identificadores de episódios, idiomas, teclas, protocolos e erros técnicos usados pela lógica permanecem estáveis; registros técnicos de diagnóstico podem continuar em inglês. As traduções tiveram uma primeira passagem assistida por tradução automática, com revisão dos controles e fluxos centrais; não houve revisão linguística humana exaustiva em cada tela na TV.
 
 ## Anime: o que isso resolve e o que depende das fontes
 
-Abra o título, ative **Anime: JP + PT-BR** e escolha o episódio normalmente. O aplicativo tentará selecionar as faixas disponíveis, sem exigir que você refaça a escolha de idioma em cada episódio. Ele não cria áudio/legenda ausente nem garante que todo complemento catalogue uma temporada da mesma forma.
+Abra o título, confira **Áudio original** e escolha o episódio normalmente. O filtro original + PT-BR fica ativado por padrão para séries e animes. O aplicativo tentará selecionar as faixas disponíveis, sem exigir que você refaça a escolha de idioma em cada episódio. Ele não cria áudio/legenda ausente nem garante que todo complemento catalogue uma temporada da mesma forma.
 
 Esta versão não converte números de temporadas nem troca IDs Kitsu/MAL/IMDb por aproximação. Os pedidos mantêm o identificador enviado pelo catálogo. Se um anime foi cadastrado como uma série diferente ou como um novo título para cada temporada, será necessário escolher a entrada correspondente no catálogo. Nenhuma disponibilidade real de Tokyo Revengers foi testada.
 
@@ -49,7 +49,7 @@ A publicação no GitHub foi autorizada. Nada foi instalado na TV ou publicado n
 
 ### WGT separado
 
-O arquivo `StremioK-PTBR-2.2.8-ptbr.1-unsigned.wgt` é um arquivo WGT sem assinatura. Ele contém os recursos web e o serviço, mas **não pode ser tratado como pronto para instalar diretamente em uma TV comercial sem assinatura**. Não houve validação no SDK Tizen, ausente neste computador.
+O arquivo `StremioK-PTBR-2.2.8-ptbr.3-unsigned.wgt` é um arquivo WGT sem assinatura. Ele contém os recursos web e o serviço, mas **não pode ser tratado como pronto para instalar diretamente em uma TV comercial sem assinatura**. Não houve validação no SDK Tizen, ausente neste computador.
 
 Após sua autorização, há duas rotas:
 
@@ -86,4 +86,10 @@ npm run test:browser
 
 O teste de navegador usa Edge instalado no caminho padrão do Windows. Ajuste `STREMIOK_BROWSER_PATH` para outro Chromium compatível, se necessário. As dependências de teste não são enviadas ao WGT nem ao módulo. O catálogo fonte está em `locales/pt-BR.json` e sua cópia embutida em `js/i18n.js`; mantenha os dois sincronizados — o teste compara cada entrada.
 
-Antes de considerar a versão validada no aparelho, conferir com autorização: iniciar original e PT-BR separadamente; verificar histórico no original; abrir série e atualizar; sair para YouTube e voltar; testar fonte com japonês e PT-BR disponíveis; testar ausência dessas faixas; confirmar troca PT-BR/EN e retenção de dados depois de fechar. Nenhum desses testes físicos foi alegado como executado.
+Antes de considerar a versão validada no aparelho, conferir com autorização: iniciar original e PT-BR separadamente; verificar histórico no original; abrir série e atualizar; sair para YouTube e voltar; testar fonte com áudio original e PT-BR disponíveis; testar ausência dessas faixas; confirmar troca PT-BR/EN e retenção de dados depois de fechar. Nenhum desses testes físicos foi alegado como executado.
+
+## Idioma original em séries e animes — 2.2.8-ptbr.3
+
+A preferência padrão é áudio original da obra + legenda PT-BR. Um idioma específico não é imposto a todos os títulos. O app usa original_language e campos equivalentes explícitos; pode consultar o TMDB pelo ID exato usando uma chave previamente configurada. País, nome do título, gênero anime e lista de idiomas falados não são usados para adivinhar o original.
+
+Se faltar o idioma original, use **Áudio original** dentro da temporada/episódio. A escolha é salva para aquele título e tem prioridade sobre o catálogo; **Usar metadados do título** remove a escolha manual. Sem original identificado, o modo estrito oculta as fontes e explica o motivo. Desativar a ocultação não muda a preferência por áudio original/PT-BR. Essas escolhas e exceções passam a integrar a exportação/importação de configurações.

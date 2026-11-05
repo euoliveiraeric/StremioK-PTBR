@@ -551,7 +551,7 @@ var Stremio = (function () {
     // without the three keys, which have their own lines, or Trakt's). Imported settings replace
     // yours, only those in EXPORT_STORE.
     var EXPORT_LINE = '#!stremiok ';
-    var EXPORT_STORE = ['stremiokptbr.prefs', 'stremiokptbr.feeds', 'stremiokptbr.searchfeeds', 'stremiokptbr.sourcefeeds', 'stremiokptbr.ranking', 'stremiokptbr.server', 'stremiokptbr.formats',
+    var EXPORT_STORE = ['stremiokptbr.native.off', 'stremiokptbr.native.languages', 'stremiokptbr.prefs', 'stremiokptbr.feeds', 'stremiokptbr.searchfeeds', 'stremiokptbr.sourcefeeds', 'stremiokptbr.ranking', 'stremiokptbr.server', 'stremiokptbr.formats',
         'stremiokptbr.resblock', 'stremiokptbr.subcfg', 'stremiokptbr.audiocfg', 'stremiokptbr.playercfg', 'stremiokptbr.private', 'stremiokptbr.youtube', 'stremiokptbr.appshortcuts',
         'stremiokptbr.appsallowed', 'stremiokptbr.aiomanager', 'stremiokptbr.iptv.stalkerall', 'stremiokptbr.iptv.every', 'stremiokptbr.local.matching', 'stremiokptbr.local.hidden',
         'stremiokptbr.addonsoff', 'stremiokptbr.integrations'];
@@ -1388,6 +1388,14 @@ var Stremio = (function () {
         return { tmdbId: r.id, kind: kind, type: kind === 'tv' ? 'series' : 'movie',
             name: r.title || r.name || '', poster: tmdbImg(r.poster_path, 'w342'),
             background: tmdbImg(r.backdrop_path, 'w780'), year: date.slice(0, 4), popularity: r.popularity || 0, votes: r.vote_count || 0 };
+    }
+    function tmdbOriginalLanguage(type, id, meta, cancel) {
+        if (!tmdbKey()) { return Promise.resolve(''); }
+        meta = meta || {};
+        var kind = type === 'series' ? 'tv' : 'movie', tmdb = meta.tmdb_id || meta.tmdbId;
+        var imdb = [meta.imdb_id, meta._imdbId, id].filter(function (v) { return /^tt[0-9]+$/.test('' + (v || '')); })[0];
+        var p = /^[1-9][0-9]*$/.test('' + (tmdb || '')) ? Promise.resolve(+tmdb) : imdb ? tmdbFind(imdb, kind, cancel) : Promise.resolve(null);
+        return p.then(function (n) { return n ? tmdbGet('/' + kind + '/' + n, '', cancel) : null; }).then(function (d) { return d && typeof d.original_language === 'string' ? d.original_language : ''; }, function () { return ''; });
     }
     function tmdbTitleExtras(type, imdbId, cancel) {
         var kind = type === 'series' ? 'tv' : 'movie';
@@ -2367,7 +2375,7 @@ var Stremio = (function () {
         getIntroSegments: getIntroSegments,
         tmdbValidate: tmdbValidate, mdblistValidate: mdblistValidate, omdbValidate: omdbValidate,
         tmdbFindTvId: tmdbFindTvId, tmdbSeasonEpisodes: tmdbSeasonEpisodes, tmdbImg: tmdbImg,
-        tmdbTitleExtras: tmdbTitleExtras, tmdbExtrasById: tmdbExtrasById, tmdbEpisodeCast: tmdbEpisodeCast, tmdbEpisodeTrailer: tmdbEpisodeTrailer, setHideWords: setHideWords, hideWordHit: hideWordHit, normalizeAddonUrl: normalizeManifestUrl, debridOf: debridOf, addonOrigin: addonOrigin, setAddonOrigin: setAddonOrigin, parseSetupList: parseSetupList, applySetupEntries: applySetupEntries, exportGroups: exportGroups, exportSetup: exportSetup, sizeLimitHit: sizeLimitHit, setSizeLimit: setSizeLimit, gbText: gbText, runtimeMinutes: runtimeMinutes, tmdbPeople: tmdbPeople, tmdbPerson: tmdbPerson, tmdbBrowse: tmdbBrowse, tmdbTitleTrailers: tmdbTitleTrailers, tmdbProviders: tmdbProviders, tmdbProvidersKept: tmdbProvidersKept, tmdbGenres: tmdbGenres, tmdbWhereToWatch: tmdbWhereToWatch, watchRegion: watchRegion, autoWatchRegion: autoWatchRegion, tmdbImdbId: tmdbImdbId, findFilm: findFilm, hasTmdb: function () { return !!tmdbKey(); },
+        tmdbOriginalLanguage: tmdbOriginalLanguage, tmdbTitleExtras: tmdbTitleExtras, tmdbExtrasById: tmdbExtrasById, tmdbEpisodeCast: tmdbEpisodeCast, tmdbEpisodeTrailer: tmdbEpisodeTrailer, setHideWords: setHideWords, hideWordHit: hideWordHit, normalizeAddonUrl: normalizeManifestUrl, debridOf: debridOf, addonOrigin: addonOrigin, setAddonOrigin: setAddonOrigin, parseSetupList: parseSetupList, applySetupEntries: applySetupEntries, exportGroups: exportGroups, exportSetup: exportSetup, sizeLimitHit: sizeLimitHit, setSizeLimit: setSizeLimit, gbText: gbText, runtimeMinutes: runtimeMinutes, tmdbPeople: tmdbPeople, tmdbPerson: tmdbPerson, tmdbBrowse: tmdbBrowse, tmdbTitleTrailers: tmdbTitleTrailers, tmdbProviders: tmdbProviders, tmdbProvidersKept: tmdbProvidersKept, tmdbGenres: tmdbGenres, tmdbWhereToWatch: tmdbWhereToWatch, watchRegion: watchRegion, autoWatchRegion: autoWatchRegion, tmdbImdbId: tmdbImdbId, findFilm: findFilm, hasTmdb: function () { return !!tmdbKey(); },
         mdblistRatings: mdblistRatings,
         omdbSeasonRatings: omdbSeasonRatings,
         loadAddons: loadAddons, listCatalogs: listCatalogs, getCatalog: getCatalog,
